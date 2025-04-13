@@ -1,0 +1,95 @@
+[tool.poetry]
+name = "pharma"
+version = "0.1.0"
+description = ""
+authors = ["Sekou <ok@incubtek.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+api = "pharma.main:api"
+init_pharma = "pharma.utils:init_inventory"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pydantic = "^2.11.3"
+pydantic-ai = "^0.0.55"
+fastapi = {extras = ["all"], version = "^0.115.12"}
+typer = {extras = ["all"], version = "^0.15.2"}
+motor = "^3.7.0"
+motor-types = "^1.0.0b4"
+async-lru = "^2.0.5"
+llama-cpp-python = "^0.3.8"
+daiquiri = "^3.3.0"
+opentelemetry-sdk = "^1.32.0"
+opentelemetry-api = "^1.32.0"
+starlette-exporter = "^0.23.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^9.1.0"
+flake8 = "^7.2.0"
+black = "^25.1.0"
+pytest = "^8.3.5"
+isort = "^6.0.1"
+huggingface-hub = "^0.30.2"
+
+[tool.pylint.messages_control]
+max-line-length = 79
+extension-pkg-whitelist = "pydantic"
+disable = [
+  "too-many-locals",
+  "duplicate-code",
+  "missing-module-docstring",
+  "missing-docstring",
+  "unused-argument",
+  "no-value-for-parameter",
+  "no-member",
+  "no-else-return",
+  "no-self-argument",
+  "line-too-long",
+  "fixme",
+  "invalid-name",
+  "raise-missing-from",
+  "protected-access",
+  "too-few-public-methods",
+  "too-many-arguments",
+  "too-many-branches",
+  'broad-exception-caught',
+  "too-many-ancestors",
+]
+
+[tool.black]
+line-length = 79 # https://peps.python.org/pep-0008/
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.docker
+    | \*.egg-info
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 79
+force_grid_wrap = 0
+multi_line_output = 3
+use_parentheses = true
+include_trailing_comma = true
+ensure_newline_before_comments = true
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

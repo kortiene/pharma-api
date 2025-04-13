@@ -1,0 +1,33 @@
+services:
+  pharma-api:
+    build: .
+    image: ${CONTAINER_REPO}:main
+    volumes:
+      - ./pharma:/app/cxc_pharma
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
+    ports:
+      - 9090:9090
+    environment:
+      ENVIRONMENT: "${ENVIRONMENT}"
+      LOG_LEVEL: "${LOG_LEVEL}"
+      MONGODB_URL: "${MONGODB_URL}"
+      MONGODB_NAME: "${MONGO_INITDB_DATABASE}"
+
+    command:
+      - api
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
+      MONGO_INITDB_DATABASE: "${MONGO_INITDB_DATABASE}"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

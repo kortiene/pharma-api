@@ -2,9 +2,9 @@
 from fastapi import APIRouter
 from pharma.prompt_templates import (prompt_alerts, prompt_delivery_verification,
                               prompt_forecast, prompt_inventory_audit,
-                              prompt_kpi_report, prompt_purchase_suggestions)
+                              prompt_kpi_report, prompt_purchase_suggestions, prompt_conversational)
 from llama_cpp import Llama
-
+from pharma.models import ChatRequest
 from pharma.services.agent import SmartInventoryAgent
 import os
 
@@ -45,44 +45,52 @@ def generate_response(
     return result["choices"][0]["text"].strip()
 
 
+@router.post("/chat")
+def chat(request: ChatRequest):
+    forecast = [f.dict() for f in ag.forecast_consumption()]
+    alerts = [a.dict() for a in ag.detect_critical_stocks() + ag.detect_expiring_products()]
+    
+    prompt = prompt_conversational(request.message, {"forecast": forecast, "alerts": alerts})
+    reply = generate_response(prompt)
+    return {"prompt": prompt, "response": reply}
 
 
-@router.get("/llm/forecast")
+@router.get("/forecast")
 def explain_forecast():
     forecasts = ag.forecast_consumption()
     prompt = prompt_forecast(forecasts)
     return {"prompt": prompt, "response": generate_response(prompt)}
 
 
-@router.get("/llm/kpi")
+@router.get("/kpi")
 def explain_kpi():
     kpis = ag.generate_kpi_report()
     prompt = prompt_kpi_report(kpis)
     return {"prompt": prompt, "response": generate_response(prompt)}
 
 
-@router.get("/llm/alerts")
+@router.get("/alerts")
 def humanize_alerts():
     alerts = ag.detect_critical_stocks() + ag.detect_expiring_products()
     prompt = prompt_alerts(alerts)
     return {"prompt": prompt, "response": generate_response(prompt)}
 
 
-@router.get("/llm/inventory")
+@router.get("/inventory")
 def audit_explanation():
     audit_alerts = ag.simulate_inventory_audit()
     prompt = prompt_inventory_audit(audit_alerts)
     return {"prompt": prompt, "response": generate_response(prompt)}
 
 
-@router.get("/llm/purchase")
+@router.get("/purchase")
 def explain_proposals():
     proposals = ag.suggest_purchase_orders()
     prompt = prompt_purchase_suggestions(proposals)
     return {"prompt": prompt, "response": generate_response(prompt)}
 
 
-@router.get("/llm/delivery")
+@router.get("/delivery")
 def explain_deliveries():
     alerts = ag.verify_deliveries()
     prompt = prompt_delivery_verification(alerts)

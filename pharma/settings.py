@@ -54,4 +54,5 @@ class Settings(BaseSettings):
             return True
         return value
 
+
 SETTINGS = Settings()

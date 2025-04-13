@@ -20,8 +20,3 @@ def api():
         kwargs["reload"] = True
 
     uvicorn.run("pharma.api:app", **kwargs)
-
-
-
-
-

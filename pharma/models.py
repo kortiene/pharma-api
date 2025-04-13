@@ -15,9 +15,9 @@ class Product(BaseModel):
     expiration_date: date
     unit_price: float
     supplier: Optional[str] = None
-    regulatory_class: Optional[Literal["Ordinaire", "Stupéfiant", "Psychotrope"]] = (
-        "Ordinaire"
-    )
+    regulatory_class: Optional[
+        Literal["Ordinaire", "Stupéfiant", "Psychotrope"]
+    ] = "Ordinaire"
 
 
 class StockItem(BaseModel):
@@ -58,7 +58,9 @@ class PurchaseProposal(BaseModel):
 
 
 class StockMovement(BaseModel):
-    movement_type: Literal["ENTREE", "SORTIE", "TRANSFERT", "RETOUR", "RUPTURE"]
+    movement_type: Literal[
+        "ENTREE", "SORTIE", "TRANSFERT", "RETOUR", "RUPTURE"
+    ]
     product_id: str
     quantity: int
     date: datetime
@@ -92,3 +94,7 @@ class KPIReport(BaseModel):
     total_ruptures: int
     total_exits: int
     top_products: List[str]
+
+
+class ChatRequest(BaseModel):
+    message: str

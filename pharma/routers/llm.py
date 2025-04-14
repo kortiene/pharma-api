@@ -1,9 +1,16 @@
 # app/api/router1.py
 from fastapi import APIRouter
-from pharma.prompt_templates import (prompt_alerts, prompt_delivery_verification,
-                              prompt_forecast, prompt_inventory_audit,
-                              prompt_kpi_report, prompt_purchase_suggestions, prompt_conversational)
-from llama_cpp import Llama
+from pharma.prompt_templates import (
+    prompt_alerts,
+    prompt_delivery_verification,
+    prompt_forecast,
+    prompt_inventory_audit,
+    prompt_kpi_report,
+    prompt_purchase_suggestions,
+    prompt_conversational
+)
+
+from openai import OpenAI
 from pharma.models import ChatRequest
 from pharma.services.agent import SmartInventoryAgent
 import os
@@ -12,37 +19,41 @@ import os
 router = APIRouter(prefix="/llm", tags=["Assistant LLM"])
 
 
-# Load the model (make sure the path and quantized model are correct)
-MODEL_PATH = f"{os.path.dirname(os.path.abspath(__file__))}/llm_models/openelm-3b-instruct-q2_k.gguf"
-
-
-llm = Llama(
-    model_path=MODEL_PATH,  # Adapt path to your system
-    n_ctx=2048,  # Contexte étendu (utile pour les prompts longs)
-    n_threads=8,  # 2 threads par cœur sur ton quad-core = 8 threads
-    use_mlock=True,  # Évite le swap, garde le modèle en mémoire
-    n_batch=64,  # Taille de batch raisonnable pour équilibre vitesse/mémoire
-    verbose=False,  # Réduit le bruit dans la console
-)
-
-
 ag = SmartInventoryAgent()
+
+# Set your OpenAI API key
+llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def generate_response(
-    prompt: str, system_prompt: str = "Tu es un assistant pharmacien intelligent."
+        prompt: str,
+        system_prompt: str = "Tu es un assistant pharmacien intelligent."
 ) -> str:
-    formatted_prompt = (
-        f"<|system|>\n{system_prompt.strip()}\n"
-        f"<|user|>\n{prompt.strip()}\n"
-        f"<|assistant|>"
-    )
+    # Format the prompt for a conversational AI system
+    formatted_prompt = [
+        {"role": "system", "content": system_prompt.strip()},
+        {"role": "user", "content": prompt.strip()},
+    ]
+    
+    try:
+        # Make the API call using the chat model (e.g., gpt-3.5-turbo or gpt-4)
+        response = llm.chat.completions.create(
+            model="gpt-4",  # Use gpt-4 for more advanced responses
+            messages=formatted_prompt,
+            max_tokens=512,
+            temperature=0.7,
+            top_p=0.95,
+            stop=["</s>"]  # If you want to use a stop sequence (adjust as needed)
+        )
+        
+        # Extract and return the assistant's response
+        assistant_response = response.choices[0].message.content
+        return assistant_response.strip()
 
-    result = llm(
-        formatted_prompt, max_tokens=512, temperature=0.7, top_p=0.95, stop=["</s>"]
-    )
-
-    return result["choices"][0]["text"].strip()
+    except Exception as e:
+        # Handle OpenAI API errors (e.g., rate limit, network issues)
+        print(f"An error occurred: {e}")
+        return "Sorry, I encountered an error. Please try again later."
 
 
 @router.post("/chat")

@@ -13,6 +13,7 @@ from starlette_exporter import PrometheusMiddleware, handle_metrics
 from pharma.middleware.logging import LoggingMiddleware
 from pharma.routers import health as health_router
 from pharma.routers import agent as agent_router
+from pharma.routers import llm as llm_agent
 from pharma.settings import SETTINGS
 
 LOGGER = daiquiri.getLogger(__name__)
@@ -40,6 +41,7 @@ app = FastAPI(
 
 app.include_router(health_router.router)
 app.include_router(agent_router.router)
+app.include_router(llm_agent.router)
 app.add_route(SETTINGS.metrics_url, handle_metrics)
 
 app.add_middleware(
